@@ -62,9 +62,10 @@ class Register extends Component {
         console.log(err);
           return (
               <div>
-                  <h1>New Account? Please Sign Up Now!</h1>
                   <h3 style={{color:"red"}}>{errorsMsg}</h3>
                   <form>
+                    <div className="regiPage">
+                    <h3><strong>New Account? Please Sign Up Now!</strong></h3>
                    <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Full Name</label>
                     <input type="text" name="fullName" value={this.state.fullName} onChange={this.updateInputField} className="form-control" aria-describedby="emailHelp" placeholder="Full Name"/>
@@ -84,7 +85,9 @@ class Register extends Component {
                   <div className="form-group">
                     <label >Confirm Password</label>
                     <input type="password" name="confirmPassword" value={this.state.confirmPassword} onChange={this.updateInputField} className="form-control" aria-describedby="emailHelp" placeholder="Enter Confirmt password"/>
+                    <br />
                     <button type="submit" value="Register" onClick={this.sendFrom} className="btn btn-primary">Submit</button>
+                  </div>
                   </div>
                 </form>
               </div> 

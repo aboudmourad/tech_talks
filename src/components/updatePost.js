@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import axios from "axios";
 import { Link } from 'react-router-dom';
+import swal from 'sweetalert';
+import Nav from "./Nav";
 
 class UpdatePost extends Component {
     constructor(props){
@@ -17,7 +19,7 @@ class UpdatePost extends Component {
         this.sendFrom = this.sendFrom.bind(this);
     }
     sendFrom(event){
-        console.log(this.props);
+        // console.log(this.props);
         // console.log('haha');
         event.preventDefault();
         axios.put(`/api/updatingPost/${this.props.match.params.id}`, {
@@ -29,6 +31,8 @@ class UpdatePost extends Component {
             console.log(response);
             // alert("The List has been updated");
             // window.location.href="/craigslist";
+            swal("Good job!", "The List has been updated!", "success");
+
         }).catch((error)=>{
             console.log(error);
             this.setState({errorsUpdate : error.response.data.errors});
@@ -46,14 +50,16 @@ class UpdatePost extends Component {
         
         return (
             <div>
+                <Nav />
                 <div>
-                <h1>Update a List</h1>
+                
                
-                <form>
+                <form style={{width: 600+ "px", marginLeft:25 + "%"}}>
+                <h1><em>Update a Post:</em></h1>
                  <div className="form-group">
                   <label htmlFor="exampleInputEmail1">Title</label>
                   <input type="text" name="title" value={this.state.title} onChange={this.updateInputField} className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Title"/>
-                  <h3 style={{color:"red"}}>{this.state.errorsUpdat && this.state.errorsUpdate.title && <p>{this.state.errorsUpdate.title.msg} </p> }</h3>
+                  <h3 style={{color:"red"}}>{this.state.errorsUpdate && this.state.errorsUpdate.title && <p>{this.state.errorsUpdate.title.msg} </p> }</h3>
                 </div>
                 <div className="form-group">
                   <label htmlFor="exampleInputEmail1">Keywords</label>
@@ -71,9 +77,11 @@ class UpdatePost extends Component {
                   <h3 style={{color:"red"}}>{this.state.errorsUpdate && this.state.errorsUpdate.contact && <p>{this.state.errorsUpdate.contact.msg} </p> }</h3>
                   <button type="submit" onClick={this.sendFrom} className="btn btn-primary">Submit</button>
                 </div>
+                <br />
+                <Link className ="btn btn-info btn-lg" to={`/`}>Go Back</Link>
               </form>
             </div>
-            <Link to={`/`}>Go Back</Link>
+            
             </div>
         );
     }

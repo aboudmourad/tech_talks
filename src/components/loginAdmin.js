@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import axios from "axios";
 
 
-class Login extends Component {
+
+class LoginAdmin extends Component {
     constructor(props){
         super(props);
         this.state = {
@@ -21,7 +22,7 @@ class Login extends Component {
 
       sendFrom(event){
         event.preventDefault();
-        axios.post('/api/login', {
+        axios.post('/api/loginAdmin', {
             email : this.state.loginEmail,
             password: this.state.loginPassword
         }).then((response) => {
@@ -46,17 +47,17 @@ class Login extends Component {
                    <div className="loginPage">
                    <h3><strong>Do you Have an account? Please Login</strong></h3>
                  <div className="form-group">
-                  <label htmlFor="exampleInputEmail1">Email address</label>
+                  <label for="exampleInputEmail1">Email address</label>
                   <input type="email" name="loginEmail" value={this.state.loginEmail} onChange={this.updateInputField} className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email"/>
                   <h3 style={{color:"red"}}>{this.state.loginErrors && this.state.loginErrors.email && <p>{this.state.loginErrors.email.msg} </p> }</h3>
                 </div>
                 <div className="form-group">
-                <label htmlFor="exampleInputPassword1">Password</label>
+                <label for="exampleInputPassword1">Password</label>
                  <input type="password" name="loginPassword" value={this.state.loginPassword} onChange={this.updateInputField} className="form-control" id="exampleInputPassword1" placeholder="Password"/><br/>
                  <h3 style={{color:"red"}}>{this.state.loginErrors && this.state.loginErrors.password && <p>{this.state.loginErrors.password.msg} </p> }</h3>
                  <h3 style={{color:"red"}}>{this.state.matchingPassword}  </h3>
 
-                 <button type="submit" onClick={this.sendFrom} className="btn btn-primary">Submit</button>
+                <button type="submit" onClick={this.sendFrom} className="btn btn-primary">Submit</button>
                  </div>
                  </div>
               </form>
@@ -66,4 +67,4 @@ class Login extends Component {
     }
 }
 
-export default Login;
+export default LoginAdmin;

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import axios from "axios";
+import Nav from "./Nav"
+import swal from 'sweetalert';
 
 
 
@@ -12,7 +14,9 @@ class TechTalks extends Component {
              showingListings: [],
              errors: "",
              userLoggedIn: false,
-             randoms:null
+             adminLoggedIn: false,
+             randoms:null,
+           
          }
          }
 
@@ -21,11 +25,13 @@ class TechTalks extends Component {
     componentDidMount(){
         axios.get('/api/getAllTechTalk/')
         .then((response)=> {
+            console.log(response);
             
             // console.log(response.data.list.length);
           this.setState({
               showingListings: response.data.list,
               userLoggedIn: response.data.isUser,
+              adminLoggedIn: response.data.isAdmin,
               randoms :response.data.list[Math.floor(Math.random() * Math.floor(5))]
             });
         //   window.location.href = "/";
@@ -44,7 +50,7 @@ class TechTalks extends Component {
         .then((response)=> {
         //   this.setState({response});
           console.log(response.data);
-
+          
           const newList = this.state.showingListings.map( (item, key) => {
             if(response.data._id === item._id) {
                 item.like = response.data.like;
@@ -86,10 +92,22 @@ class TechTalks extends Component {
     }
 
     deleteHandler = (event, id) => {
-        const url = `/api/deletePost/${id}`;
+        swal({
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this imaginary file!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+          })
+          .then((willDelete) => {
+            if (willDelete) {
+              swal("Poof! Your imaginary file has been deleted!", {
+                icon: "success",
+              });
+              const url = `/api/deletePost/${id}`;
         axios.delete(url)
         .then((response)=> {
-            alert("Are you sure You want to Delete it?");
+            
           console.log(response);
           
           window.location.href = "/";
@@ -98,6 +116,11 @@ class TechTalks extends Component {
         .catch(function (error) {
           console.log(error);
         });
+            } else {
+              swal("Your imaginary file is safe!");
+            }
+          });
+        
     }
     
     render() {
@@ -106,47 +129,68 @@ class TechTalks extends Component {
         // console.log(this.state.showingListings);
 
 
-
+        
         
         return (
             
             <div>
-                 <h1 className="welcome">Welcome to the TechTalks</h1>
-                { this.state.userLoggedIn ?<h1>Welcome : {this.state.userLoggedIn && this.state.userLoggedIn.fullName}</h1>: null}
+                <Nav />
+ 
+
+
+
                 
-                <div className="login">{ !this.state.userLoggedIn ?<Link to='/login_Registration'>Log In/Registration</Link> : null}</div>
-   
-                <div className="logout"> { this.state.userLoggedIn ?<Link to='/logout'>Log Out</Link> : null}</div>
                 <br />
                 <br />
                 <center><h2>A Random TechTalk article for you to enjoy:</h2>
-                <div><h3>Title: <br />{this.state.randoms && this.state.randoms.title}</h3></div>
-                <div><h3> Posted by : <br />{ this.state.randoms && this.state.randoms.user_id && this.state.randoms.user_id.fullName }</h3></div>
-                <Link to={`/showOne/${this.state.randoms && this.state.randoms._id}`}>View Post</Link></center>
+                <div className="card bg-light mb-3" style={{maxWidth: 50 +"rem"}}>
+                <div className="card-header"><h3>Title: <br />{this.state.randoms && this.state.randoms.title}</h3></div>
+                <div className="card-body"><h3> Posted by : <br />{ this.state.randoms && this.state.randoms.user_id && this.state.randoms.user_id.fullName }</h3></div>
+                
+                </div>
+                <Link className ="btn btn-info btn-lg" to={`/showOne/${this.state.randoms && this.state.randoms._id}`}>View Post</Link>
+
+                </center>
+                
                 <hr />
                
-                { this.state.userLoggedIn ? <Link to={`/createTechTalk`}>Write a TechTalks Post</Link> : null}
                 
-                <center><h2>The Latest TechTalks Articles:</h2></center>
-                
+                <center><h2><em>The Latest TechTalks Articles:</em></h2></center><br />
+                { this.state.userLoggedIn || this.state.adminLoggedIn ? <Link style={{marginLeft:45 +"%"}} className ="btn btn-info btn-lg" to={`/createTechTalk`}>Write a TechTalks Post</Link> : null}
+                <br />
+                <br />
                 {this.state.showingListings && this.state.showingListings.slice(0).reverse().map((listing)=>{
                     return (
                         
-                        <div  key= {listing._id}>
+                        <div  style ={{display:"inline-block", marginLeft:40 +"px"}} key= {listing._id}>
                         
+                            <div  onClick={(event) => {window.location.href = `/showOne/${listing._id}`;}}>
+                        <div className="card bg-light mb-3" style={{maxWidth: 50 +"rem"}}>
+                            <div  className="card-header"><h5>By: {listing.user_id.fullName}</h5></div>
+                                <div className="card-body">
+                                    <h4 className="card-title">{listing.title}</h4>
+                                      <h6 className="card-text">Rate: {listing.like}</h6>
+                                      
+                                </div>
+                                
+                            </div>
+                            </div> 
+                            <br />
+                            
                      
-                        <center><div><h3>Title: <br />{listing.title}</h3></div>
-                           <div><h3>Posted by: <br />{listing.user_id.fullName}</h3></div>
-                           <div><h4>Like: <br />{listing.like}</h4></div>
-                          <button type="button" className="btn btn-info btn-circle" onClick={(event) => { this.likeHandler(event, listing._id) }}><i className="glyphicon glyphicon-ok"></i></button>
-                          <button type="button" className="btn btn-danger btn-circle btn-xl" onClick={(event) => { this.disLikeHandler(event, listing._id) }}><i class="glyphicon glyphicon-thumbs-down"></i></button>
-
-                          {this.state.userLoggedIn && this.state.userLoggedIn.firstName === listing.user_id.firstName ? <button type="button" className="btn btn-warning btn-circle"onClick={(event) => { this.deleteHandler(event, listing._id) }}><i class="glyphicon glyphicon-remove"></i></button>: null} <br />
-                          <Link to={`/showOne/${listing._id}`}>View Post</Link> <br />
-                          {this.state.userLoggedIn && this.state.userLoggedIn.firstName === listing.user_id.firstName ? <Link to={`/updatePost/${listing._id}`}>Update Post</Link>: null}
+                       
+                          <button type="button" className="btn btn-info btn-circle" onClick={(event) => { this.likeHandler(event, listing._id); return false }}><i className="glyphicon glyphicon-ok"></i></button>
+                          <button type="button" className="btn btn-danger btn-circle btn-xl" onClick={(event) => { this.disLikeHandler(event, listing._id); return false }}><i className="glyphicon glyphicon-thumbs-down"></i></button>
+                            <br />
+                          {this.state.userLoggedIn && this.state.userLoggedIn.firstName === listing.user_id.firstName || this.state.adminLoggedIn ? <button type="button" className="btn btn-warning btn-circle"onClick={(event) => { this.deleteHandler(event, listing._id) }}><i class="glyphicon glyphicon-remove"></i></button>: null} 
+                          <br />
+ 
+                          <br />
+                          <br />
+                          {this.state.userLoggedIn && this.state.userLoggedIn.firstName === listing.user_id.firstName || this.state.adminLoggedIn ? <Link className ="btn btn-info btn-lg" to={`/updatePost/${listing._id}`}>Update Post</Link>: null}
 
                        
-                          </center>
+                          
                            
                            <hr />
                            </div>

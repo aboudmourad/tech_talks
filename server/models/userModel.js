@@ -25,16 +25,36 @@ const UsersSchema = new Schema({
     updatedAt: { type : Date, default : Date.now , required: true}
 
 })
-
-UsersSchema.methods.hashPassword = function(password){
-   
+/////////////////////////////User Password///////////////
+UsersSchema.methods.hashPassword = function(password){  
     return bcrypt.hashSync(password, 12);
 }
-
-
 UsersSchema.methods.comparePassword = function(password, hashPassword){
     return bcrypt.compareSync(password, hashPassword);
 }
+///////////////////////////////////////
+
+
+
+const AdminSchema = new Schema({
+    fullName: {type:String, required: true},
+    email:{type:String, required: true},
+    description : {type:String, required: true},
+    password: {type:String, required: true},
+    createAt: { type : Date, default : Date.now, required: true},
+    updatedAt: { type : Date, default : Date.now , required: true}
+
+})
+
+///////////Admin password//////////////
+AdminSchema.methods.hashPassword = function(password){
+    return bcrypt.hashSync(password, 12);
+}
+AdminSchema.methods.comparePassword = function(password, hashPassword){
+    return bcrypt.compareSync(password, hashPassword);
+}
+//////////////////////////////
 
 mongoose.model('User', UsersSchema);
 mongoose.model('TechTalk', TechTalkSchema);
+mongoose.model('Admin', AdminSchema);

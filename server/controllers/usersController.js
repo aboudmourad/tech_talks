@@ -1,9 +1,22 @@
 var mongoose = require("mongoose");
 var User = mongoose.model('User');
 var TechTalk = mongoose.model('TechTalk');
+var Admin = mongoose.model('Admin');
 const {check, validationResult} = require('express-validator/check');
 
+function createAdmin(req, res, next) {
 
+        const admin = new Admin(req.body);
+        admin.password = admin.hashPassword(admin.password);
+        admin.save((err) => {
+            if (err) {
+            console.log('Error saving user: ', user);
+            return next();    
+            }
+            res.json({ok: true});
+        })
+    
+   }
 
 function createUser(req, res, next) {
     const errors = validationResult(req);
@@ -86,7 +99,8 @@ var validateCreatePost = () => {
        .populate('user_id')
        .then((TechTalk)=>{res.send({
            list: TechTalk,
-           isUser: req.session.user
+           isUser: req.session.user,
+           isAdmin:req.session.admin
        })})
        .catch((err)=>{res.send(err)})
        }
@@ -99,6 +113,17 @@ var validateCreatePost = () => {
         .then((techTalk)=>{res.json(techTalk)})
         .catch((error)=>{res.json(error)})
     }
+
+
+    
+    showOneUser= (req, res) =>
+    {
+      //    console.log(req.session.user);
+      User.findById({_id:req.params.id})
+      .populate('users',['fullName','email','description'])
+      .then((users)=>{res.json(users)})
+      .catch((error)=>{res.json(error)})
+  }
 
 
     
@@ -137,6 +162,26 @@ function loginUser( req, res, next){
     }
    }
 
+   function loginAdmin( req, res, next){
+    
+       Admin.findOne({email : req.body.email}, (err, admin) => {
+           if (err) {
+               console.log('Error getting Admin: ', err);
+               return next();
+           }
+        
+           if(!admin) {
+               return res.status(404).json({err : true, message : "Admin dose not exist"})
+           };
+           if(!admin.comparePassword(req.body.password, admin.password)) {
+               return res.status(404).json({err: true, message:"Passwords do not match"});
+           }
+           req.session.admin= admin;
+           res.json(admin)
+       })
+    
+   }
+
 
 function logout(req,res , next) {
    req.session.destroy((err) => {
@@ -158,17 +203,29 @@ function authenticateUser(req,res, next) {
    res.json({err:true, message:"Not Authenticated"});
 }
 
+function authenticateAdmin(req,res, next) {
+    if(req.session.admin) return next();
+    res.json({err:true, message:"Not Authenticated"});
+ }
+
 function deletePost(req, res) {
     TechTalk.findOneAndRemove({_id:req.params.id})
     .then((res)=>{res.send( res)})
     .catch((err)=>{res.send(err)})
   };
+  
+
+  function deleteUser(req, res) {
+    User.findOneAndRemove({_id:req.params.id})
+    .then((res)=>{res.send( res)})
+    .catch((err)=>{res.send(err)})
+  };
 
   function updatingPost(req, res) {
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //     return res.status(422).json({errors: errors.mapped()});
-    // } else {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({errors: errors.mapped()});
+    } else {
         TechTalk.findById(req.params.id)
       .then(function(techTalk) {
         techTalk.title = req.body.title;
@@ -180,7 +237,36 @@ function deletePost(req, res) {
         });
       })
       .catch(err => res.send(err));
-    // }
+    }
+  };
+
+  var validateUpdateUser = () => {
+    return [
+            check('fullName', 'Please enter your full name without numbers and longer then 4 char.').not().isEmpty().isLength({ min: 4 }).matches(/^([A-z]|\s)+$/),
+            check('email', 'Your email is not valid').isEmail(),
+            check('description', 'Your description is empty, try another one.').not().isEmpty(),
+            check('password', 'Your password should be longer then 8 char.')
+                  .isLength({ min: 8 }),
+        ];
+}
+
+  function updatingUser(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({errors: errors.mapped()});
+    } else {
+        User.findById(req.params.id)
+      .then(function(users) {
+        users.fullName = req.body.fullName ;
+        users.description = req.body.description;
+        users.email = req.body.email;
+        users.password = req.body.password;
+        users.save().then(function(users) {
+          res.send(users);
+        });
+      })
+      .catch(err => res.send(err));
+    }
   };
 
   function likePost(req,res){
@@ -195,7 +281,9 @@ function deletePost(req, res) {
 
 function disLikePost(req,res){
     TechTalk.findById(req.params.id).then(function(techTalk) {
+        if (techTalk.like > 0){
         techTalk.like = techTalk.like - 1;
+        }
         techTalk.save().then(function(techTalk) {
             res.send(techTalk);
         })
@@ -218,5 +306,12 @@ module.exports= {
    deletePost,
    updatingPost,
    likePost,
-   disLikePost
+   disLikePost,
+   deleteUser,
+   updatingUser,
+   showOneUser,
+   validateUpdateUser,
+   createAdmin,
+   loginAdmin,
+   authenticateAdmin 
 };
